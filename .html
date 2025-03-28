@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+     
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta de Verbos en Inglés</title>
+    <style>
+        /* ME CONSUME */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-image: url('/api/placeholder/1600/900?text=Education+Background&bg=f0f5ff');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #f0f5ff; 
+            color: #333;
+        }
+        /* Pasan las horas de dos en dos
+        Y a mí me consume aún el recuerdo
+        De lo que pasó entre tú y yo */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+        }
+        h1 {
+            color: #2c3e50;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 30px auto;
+        }
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            transition: transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            border: 5px solid white;
+        }
+        .segment {
+            position: absolute;
+            width: 0;
+            height: 0;
+            transform-origin: 0 0;
+            top: 50%;
+            left: 50%;
+            border-style: solid;
+            border-width: 0 200px 200px 0;
+            transform: rotate(0deg) translate(-50%, -50%);
+        }
+        .marker {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #e74c3c;
+            z-index: 2;
+            filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.3));
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            min-height: 80px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .verb-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .state-display {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+        .instruction {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-size: 16px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .mode-toggle {
+            margin: 20px 0;
+            padding: 8px 15px;
+            background-color: rgba(52, 152, 219, 0.2);
+            border-radius: 50px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        .answer-section {
+            margin-top: 20px;
+            display: none;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .answer-input {
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #bdc3c7;
+            border-radius: 50px;
+            width: 250px;
+            margin-right: 10px;
+            transition: all 0.3s;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .answer-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(52, 152, 219, 0.25);
+        }
+        .feedback {
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .correct {
+            color: #2ecc71;
+            background-color: rgba(46, 204, 113, 0.1);
+        }
+        .incorrect {
+            color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+        .correct-answer {
+            font-style: italic;
+            color: #7f8c8d;
+            margin-top: 10px;
+            padding: 5px;
+        }
+        .header {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background-color: #3498db;
+            border-radius: 3px;
+        }
+        .score-display {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50px;
+            display: inline-block;
+        }
+        .continue-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        .continue-btn:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .custom-bg-selector {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .bg-option {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: inline-block;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .bg-option:hover {
+            transform: scale(1.1);
+        }
+        .bg-option.selected {
+            border-color: #3498db;
+        }
+        /* Si quieres y cada que te llegue a ti еl dolor
+        Acuérdate de que yo fui tu yo
+        Para quе te duela más el pecho */
+    </style>
+    
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Ruleta de Verbos en Inglés</h1>
+        </div>
+        <p class="instruction">Gira la ruleta para seleccionar un verbo y luego vuelve a girarla para ver qué forma verbal practicar.</p>
+        
+        <div class="mode-toggle">
+            <span id="current-mode">Modo: Selección de verbo</span>
+        </div>
+        
+        <div class="wheel-container">
+            <div class="marker"></div>
+            <div class="wheel" id="wheel"></div>
+        </div>
+        
+        <div>
+            <button class="btn" id="spin-btn">Girar Ruleta</button>
+            <button class="btn" id="reset-btn">Reiniciar</button>
+            <button class="continue-btn" id="continue-btn">Continuar</button>
+        </div>
+        
+        <div class="result">
+            <div class="verb-display" id="verb-display">Gira la ruleta para comenzar</div>
+            <div class="state-display" id="state-display"></div>
+        </div>
+        
+        <div class="answer-section" id="answer-section">
+            <p>Escribe la conjugación correcta:</p>
+            <input type="text" class="answer-input" id="answer-input" placeholder="Tu respuesta...">
+            <button class="btn" id="check-btn">Comprobar</button>
+            
+            <div class="feedback" id="feedback"></div>
+            <div class="correct-answer" id="correct-answer"></div>
+        </div>
+        
+        <div class="score-display" id="score-display">
+            Aciertos: 0 | Intentos: 0
+        </div>
+        
+        <div class="custom-bg-selector">
+            <h3>Selecciona un fondo:</h3>
+            <div class="bg-option selected" style="background-color: #f0f5ff;" data-bg="default"></div>
+            <div class="bg-option" style="background-color: #ffebcc;" data-bg="warm"></div>
+            <div class="bg-option" style="background-color: #e6ffe6;" data-bg="nature"></div>
+            <div class="bg-option" style="background-color: #ffe6e6;" data-bg="sunset"></div>
+            <div class="bg-option" style="background-color: #e6f2ff;" data-bg="ocean"></div>
+        </div>
+    </div>
+
+    <script>
+        
+        const verbs = [
+            { infinitive: "go", past: "went", participle: "gone" },
+            { infinitive: "run", past: "ran", participle: "run" },
+            { infinitive: "eat", past: "ate", participle: "eaten" },
+            { infinitive: "drink", past: "drank", participle: "drunk" },
+            { infinitive: "sleep", past: "slept", participle: "slept" },
+            { infinitive: "see", past: "saw", participle: "seen" },
+            { infinitive: "buy", past: "bought", participle: "bought" },
+            { infinitive: "bring", past: "brought", participle: "brought" },
+            { infinitive: "catch", past: "caught", participle: "caught" },
+            { infinitive: "choose", past: "chose", participle: "chosen" },
+            { infinitive: "come", past: "came", participle: "come" },
+            { infinitive: "cut", past: "cut", participle: "cut" },
+            { infinitive: "do", past: "did", participle: "done" },
+            { infinitive: "draw", past: "drew", participle: "drawn" },
+            { infinitive: "drive", past: "drove", participle: "driven" },
+            { infinitive: "fall", past: "fell", participle: "fallen" },
+            { infinitive: "feel", past: "felt", participle: "felt" },
+            { infinitive: "fight", past: "fought", participle: "fought" },
+            { infinitive: "find", past: "found", participle: "found" },
+            { infinitive: "fly", past: "flew", participle: "flown" },
+            { infinitive: "forget", past: "forgot", participle: "forgotten" },
+            { infinitive: "get", past: "got", participle: "got/gotten" },
+            { infinitive: "give", past: "gave", participle: "given" },
+            { infinitive: "have", past: "had", participle: "had" },
+            { infinitive: "hear", past: "heard", participle: "heard" },
+            { infinitive: "keep", past: "kept", participle: "kept" },
+            { infinitive: "know", past: "knew", participle: "known" },
+            { infinitive: "learn", past: "learned/learnt", participle: "learned/learnt" },
+            { infinitive: "leave", past: "left", participle: "left" },
+            { infinitive: "lose", past: "lost", participle: "lost" },
+            { infinitive: "make", past: "made", participle: "made" },
+            { infinitive: "meet", past: "met", participle: "met" },
+            { infinitive: "pay", past: "paid", participle: "paid" },
+            { infinitive: "put", past: "put", participle: "put" },
+            { infinitive: "read", past: "read", participle: "read" },
+            { infinitive: "ride", past: "rode", participle: "ridden" },
+            { infinitive: "ring", past: "rang", participle: "rung" },
+            { infinitive: "rise", past: "rose", participle: "risen" },
+            { infinitive: "say", past: "said", participle: "said" },
+            { infinitive: "sell", past: "sold", participle: "sold" },
+            { infinitive: "send", past: "sent", participle: "sent" },
+            { infinitive: "set", past: "set", participle: "set" },
+            { infinitive: "shake", past: "shook", participle: "shaken" },
+            { infinitive: "shine", past: "shone", participle: "shone" },
+            { infinitive: "shoot", past: "shot", participle: "shot" },
+            { infinitive: "show", past: "showed", participle: "shown/showed" },
+            { infinitive: "sing", past: "sang", participle: "sung" },
+            { infinitive: "sit", past: "sat", participle: "sat" },
+            { infinitive: "speak", past: "spoke", participle: "spoken" },
+            { infinitive: "spend", past: "spent", participle: "spent" },
+            { infinitive: "stand", past: "stood", participle: "stood" },
+            { infinitive: "swim", past: "swam", participle: "swum" },
+            { infinitive: "take", past: "took", participle: "taken" },
+            { infinitive: "teach", past: "taught", participle: "taught" },
+            { infinitive: "tell", past: "told", participle: "told" },
+            { infinitive: "think", past: "thought", participle: "thought" },
+            { infinitive: "throw", past: "threw", participle: "thrown" },
+            { infinitive: "understand", past: "understood", participle: "understood" },
+            { infinitive: "wear", past: "wore", participle: "worn" },
+            { infinitive: "write", past: "wrote", participle: "written" }
+        ];
+
+            /* Tú, de quien me acuerdo a cada rato
+            Pero todos los días para ser exacto
+            Te clavaste bien en mí */
+        const backgrounds = {
+            default: "url('/api/placeholder/1600/900?text=Education+Background&bg=f0f5ff')",
+            warm: "url('/api/placeholder/1600/900?text=Warm+Education+Background&bg=ffebcc')",
+            nature: "url('/api/placeholder/1600/900?text=Nature+Learning+Background&bg=e6ffe6')",
+            sunset: "url('/api/placeholder/1600/900?text=Sunset+Study+Background&bg=ffe6e6')",
+            ocean: "url('/api/placeholder/1600/900?text=Ocean+Knowledge+Background&bg=e6f2ff')"
+        };
+
+        
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spin-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const continueBtn = document.getElementById('continue-btn');
+        const verbDisplay = document.getElementById('verb-display');
+        const stateDisplay = document.getElementById('state-display');
+        const currentMode = document.getElementById('current-mode');
+        const answerSection = document.getElementById('answer-section');
+        const answerInput = document.getElementById('answer-input');
+        const checkBtn = document.getElementById('check-btn');
+        const feedback = document.getElementById('feedback');
+        const correctAnswer = document.getElementById('correct-answer');
+        const scoreDisplay = document.getElementById('score-display');
+        const bgOptions = document.querySelectorAll('.bg-option');
+
+        
+        let isSpinning = false;
+        let selectedVerb = null;
+        let selectedConjugation = null;
+        let correctConjugation = "";
+        let mode = 'verb'; 
+        let score = 0;
+        let attempts = 0;
+        
+        
+        const colors = [
+            '#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', 
+            '#e67e22', '#1abc9c', '#34495e', '#7f8c8d', '#d35400'
+        ];
+
+        
+        function setupWheel() {
+            wheel.innerHTML = '';
+            const items = mode === 'verb' ? verbs : [
+                { text: "Pasado Simple" },
+                { text: "Pasado Participio" }
+            ];
+            
+            const segmentAngle = 360 / items.length;
+            
+            for (let i = 0; i < items.length; i++) {
+                const segment = document.createElement('div');
+                segment.className = 'segment';
+                
+                const angle = i * segmentAngle;
+                segment.style.transform = `rotate(${angle}deg)`;
+                segment.style.borderColor = `transparent transparent ${colors[i % colors.length]} transparent`;
+                
+                const text = document.createElement('span');
+                text.style.position = 'absolute';
+                text.style.left = '30px';
+                text.style.top = '80px';
+                text.style.transform = `rotate(${90 + segmentAngle / 2}deg)`;
+                text.style.transformOrigin = 'center';
+                text.style.color = 'white';
+                text.style.fontWeight = 'bold';
+                text.style.fontSize = mode === 'verb' ? '12px' : '14px';
+                text.textContent = mode === 'verb' ? items[i].infinitive : items[i].text;
+                
+                segment.appendChild(text);
+                wheel.appendChild(segment);
+            }
+        }
+
+        
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            continueBtn.style.display = 'none';
+            
+            const items = mode === 'verb' ? verbs : [
+                { text: "Pasado Simple" },
+                { text: "Pasado Participio" }
+            ];
+            
+            const randomDegrees = Math.floor(3600 + Math.random() * 360);
+            wheel.style.transform = `rotate(${randomDegrees}deg)`;
+            
+            const selectedIndex = Math.floor(items.length - (randomDegrees % 360) / (360 / items.length)) % items.length;
+            
+            setTimeout(() => {
+                isSpinning = false;
+                spinBtn.disabled = false;
+                
+                if (mode === 'verb') {
+                    selectedVerb = verbs[selectedIndex];
+                    verbDisplay.textContent = `Verbo: ${selectedVerb.infinitive}`;
+                    stateDisplay.textContent = "Ahora gira la ruleta para la conjugación";
+                    
+                    
+                    mode = 'conjugation';
+                    currentMode.textContent = "Modo: Selección de conjugación";
+                    setupWheel();
+                } else if (mode === 'conjugation') {
+                    
+                    const conjugationTypes = ["Pasado Simple", "Pasado Participio"];
+                    selectedConjugation = conjugationTypes[selectedIndex];
+                    
+                    switch(selectedConjugation) {
+                        case "Pasado Simple":
+                            correctConjugation = selectedVerb.past;
+                            break;
+                        case "Pasado Participio":
+                            correctConjugation = selectedVerb.participle;
+                            break;
+                    }
+                    
+                    stateDisplay.textContent = `Conjugación: ${selectedConjugation}`;
+                    verbDisplay.textContent = `Verbo: ${selectedVerb.infinitive}`;
+                    
+                    
+                    answerSection.style.display = 'block';
+                    answerInput.value = '';
+                    answerInput.focus();
+                    feedback.textContent = '';
+                    correctAnswer.textContent = '';
+                    
+                    
+                    spinBtn.disabled = true;
+                    
+                    mode = 'answer';
+                    currentMode.textContent = "Modo: Comprobación de respuesta";
+                }
+            }, 5000);
+        }
+
+        
+        function checkAnswer() {
+            const userAnswer = answerInput.value.trim().toLowerCase();
+            attempts++;
+            
+            
+            let isCorrect = false;
+            
+            
+            isCorrect = correctConjugation.split('/').some(form => form === userAnswer);
+            
+            if (isCorrect) {
+                score++;
+                feedback.textContent = "¡Correcto! 🎉";
+                feedback.className = "feedback correct";
+            } else {
+                feedback.textContent = "Incorrecto ❌";
+                feedback.className = "feedback incorrect";
+                correctAnswer.textContent = `La respuesta correcta es: ${correctConjugation}`;
+            }
+            
+            
+            scoreDisplay.textContent = `Aciertos: ${score} | Intentos: ${attempts}`;
+            
+            
+            continueBtn.style.display = 'inline-block';
+            checkBtn.disabled = true;
+            answerInput.disabled = true;
+        }
+
+        
+        function continueGame() {
+            
+            selectedVerb = null;
+            selectedConjugation = null;
+            correctConjugation = "";
+            mode = 'verb';
+            currentMode.textContent = "Modo: Selección de verbo";
+            verbDisplay.textContent = "Gira la ruleta para seleccionar un nuevo verbo";
+            stateDisplay.textContent = "";
+            answerSection.style.display = 'none';
+            feedback.textContent = '';
+            correctAnswer.textContent = '';
+            spinBtn.disabled = false;
+            checkBtn.disabled = false;
+            answerInput.disabled = false;
+            continueBtn.style.display = 'none';
+            setupWheel();
+        }
+
+       
+        function resetGame() {
+            selectedVerb = null;
+            selectedConjugation = null;
+            correctConjugation = "";
+            mode = 'verb';
+            currentMode.textContent = "Modo: Selección de verbo";
+            verbDisplay.textContent = "Gira la ruleta para comenzar";
+            stateDisplay.textContent = "";
+            answerSection.style.display = 'none';
+            feedback.textContent = '';
+            correctAnswer.textContent = '';
+            spinBtn.disabled = false;
+            checkBtn.disabled = false;
+            answerInput.disabled = false;
+            continueBtn.style.display = 'none';
+            score = 0;
+            attempts = 0;
+            scoreDisplay.textContent = `Aciertos: ${score} | Intentos: ${attempts}`;
+            setupWheel();
+        }
+
+        
+        function changeBackground(bgName) {
+            document.body.style.backgroundImage = backgrounds[bgName];
+            
+           
+            bgOptions.forEach(option => {
+                if (option.dataset.bg === bgName) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+        }
+
+        
+        spinBtn.addEventListener('click', spinWheel);
+        resetBtn.addEventListener('click', resetGame);
+        checkBtn.addEventListener('click', checkAnswer);
+        continueBtn.addEventListener('click', continueGame);
+        
+        
+        answerInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !checkBtn.disabled) {
+                checkAnswer();
+            }
+        });
+
+       
+        bgOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                changeBackground(this.dataset.bg);
+            });
+        });
+
+       
+        setupWheel();
+    </script>
+</body>
+</html>
